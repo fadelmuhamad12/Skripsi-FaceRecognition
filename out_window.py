@@ -1,8 +1,3 @@
-# Modified by Augmented Startups & Geeky Bee
-# October 2020
-# Facial Recognition Attendence GUI
-# Full Course - https://augmentedstartups.info/yolov4release
-# *-
 from PyQt5.QtGui import QImage, QPixmap
 from PyQt5.uic import loadUi
 from PyQt5.QtCore import pyqtSlot, QTimer, QDate, Qt
@@ -81,7 +76,7 @@ class Ui_OutputDialog(QDialog):
             """
             # Ini jika tombol klik button nya di klik maka tidak bisa diklik lg
 
-            face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
+
             # self.ClcokInButton.setEnabled(False)
             if  self.ClockInButton.isChecked():
                 self.ClockOutButton.setEnabled(False)
@@ -104,16 +99,32 @@ class Ui_OutputDialog(QDialog):
                                 self.HoursLabel.setText(current_time)
                                 self.MinLabel.setText('')
 
-                                # Detect faces and show confidence level
-                                gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-                                faces = face_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5,
-                                                                      minSize=(30, 30))
-                                for (x, y, w, h) in faces:
-                                    cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
-                                    confidence = str(
-                                        round(100 - (w * h) / (gray.shape[0] * gray.shape[1]) * 100, 2)) + '%'
-                                    cv2.putText(frame, confidence, (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5,
-                                                (0, 255, 0), 2)
+                                # # Untuk memunculkan confidence level HAAR CASCADE CLASSIFIER Baru ditambahin
+                                # def detect_faces(self, img, labels=None, recognizer=None):
+                                #     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+                                #     faces = face_cascade.detectMultiScale(gray, scaleFactor=1.3, minNeighbors=5)
+                                #     for (x, y, w, h) in faces:
+                                #         roi_gray = gray[y:y + h, x:x + w]
+                                #         roi_color = img[y:y + h, x:x + w]
+                                #         id_, conf = recognizer.predict(roi_gray)
+                                #         if conf > 70:
+                                #             font = cv2.FONT_HERSHEY_SIMPLEX
+                                #             name = labels[id_]
+                                #             confidence = " {0}%".format(round(100 - conf))
+                                #             cv2.putText(img, name + confidence, (x + 5, y - 5), font, 1,
+                                #                         (255, 255, 255), 2)
+                                #             cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 2)
+                                #             return name, round(100 - conf)
+                                #     return 'unknown', 0
+                                # gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+                                # faces = face_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5,
+                                #                                       minSize=(30, 30))
+                                # for (x, y, w, h) in faces:
+                                #     cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+                                #     confidence = str(
+                                #         round(100 - (w * h) / (gray.shape[0] * gray.shape[1]) * 100, 2)) + '%'
+                                #     cv2.putText(frame, confidence, (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5,
+                                #                 (0, 255, 0), 2)
 
                                 #self.CalculateElapse(name)
                                 #print('Yes clicked and detected')
@@ -158,13 +169,14 @@ class Ui_OutputDialog(QDialog):
         # face recognition
         faces_cur_frame = face_recognition.face_locations(frame)
         encodes_cur_frame = face_recognition.face_encodings(frame, faces_cur_frame)
-        # count = 0
+        face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
+        distances = []
         for encodeFace, faceLoc in zip(encodes_cur_frame, faces_cur_frame):
             match = face_recognition.compare_faces(encode_list_known, encodeFace, tolerance=0.50)
             face_dis = face_recognition.face_distance(encode_list_known, encodeFace)
+            distances.append(face_dis)
             name = "unknown"
             best_match_index = np.argmin(face_dis)
-            # print("s",best_match_index)
             if match[best_match_index]:
                 name = class_names[best_match_index].upper()
                 y1, x2, y2, x1 = faceLoc
@@ -172,7 +184,14 @@ class Ui_OutputDialog(QDialog):
                 cv2.rectangle(frame, (x1, y2 - 20), (x2, y2), (0, 255, 0), cv2.FILLED)
                 cv2.putText(frame, name, (x1 + 6, y2 - 6), cv2.FONT_HERSHEY_COMPLEX, 0.5, (255, 255, 255), 1)
             mark_attendance(name)
-
+        # Ini untuk menambahkan Level akurasinya atau level of confidence nya
+        for face_dis in distances:
+            min_distance = min(face_dis)
+            confidence = round(((1 - min_distance) * 100), 2)
+            if confidence >= 50:  # ini untuk menentukan apakah wajahnya dikenal atau tidak
+                cv2.putText(frame, f"{confidence}% Terdaftar", (50, 50), cv2.FONT_HERSHEY_COMPLEX, 0.5, (0, 255, 0), 1)
+            else:
+                cv2.putText(frame, f"{confidence}% Tidak Di Ketahui", (50, 50), cv2.FONT_HERSHEY_COMPLEX, 0.5, (0, 0, 255), 1)
         return frame
 
     def showdialog(self):
