@@ -46,7 +46,6 @@ class Ui_OutputDialog(QDialog):
         self.TimeList2 = []
         attendance_list = os.listdir(path)
 
-        # print(attendance_list)
         for cl in attendance_list:
             cur_img = cv2.imread(f'{path}/{cl}')
             images.append(cur_img)
@@ -168,8 +167,8 @@ class Ui_OutputDialog(QDialog):
 
         # face recognition
         faces_cur_frame = face_recognition.face_locations(frame)
+        # faces_cur_frame = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
         encodes_cur_frame = face_recognition.face_encodings(frame, faces_cur_frame)
-        face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
         distances = []
         for encodeFace, faceLoc in zip(encodes_cur_frame, faces_cur_frame):
             match = face_recognition.compare_faces(encode_list_known, encodeFace, tolerance=0.50)
@@ -189,7 +188,7 @@ class Ui_OutputDialog(QDialog):
             min_distance = min(face_dis)
             confidence = round(((1 - min_distance) * 100), 2)
             if confidence >= 50:  # ini untuk menentukan apakah wajahnya dikenal atau tidak
-                cv2.putText(frame, f"{confidence}% Terdaftar", (50, 50), cv2.FONT_HERSHEY_COMPLEX, 0.5, (0, 255, 0), 1)
+                cv2.putText(frame, f"{confidence}% Terdaftar", (x1 + 6, y2 - 6), cv2.FONT_HERSHEY_COMPLEX, 0.5, (0, 255, 0), 1)
             else:
                 cv2.putText(frame, f"{confidence}% Tidak Di Ketahui", (50, 50), cv2.FONT_HERSHEY_COMPLEX, 0.5, (0, 0, 255), 1)
         return frame
