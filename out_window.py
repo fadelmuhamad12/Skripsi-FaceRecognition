@@ -179,19 +179,47 @@ class Ui_OutputDialog(QDialog):
             if match[best_match_index]:
                 name = class_names[best_match_index].upper()
                 y1, x2, y2, x1 = faceLoc
-                cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
-                cv2.rectangle(frame, (x1, y2 - 20), (x2, y2), (0, 255, 0), cv2.FILLED)
+                cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 128, 0), 1)
+                cv2.rectangle(frame, (x1, y2 - 20), (x2, y2), (0, 128, 0), cv2.FILLED)
                 cv2.putText(frame, name, (x1 + 6, y2 - 6), cv2.FONT_HERSHEY_COMPLEX, 0.5, (255, 255, 255), 1)
+
+                for encodeFace, faceLoc in zip(encodes_cur_frame, faces_cur_frame):
+                    match = face_recognition.compare_faces(encode_list_known, encodeFace, tolerance=0.50)
+                    face_dis = face_recognition.face_distance(encode_list_known, encodeFace)
+                    distances.append(face_dis)
+                    best_match_index = np.argmin(face_dis)
+                    min_distance = face_dis[best_match_index]
+                    confidence = round(((1 - min_distance) * 100), 2)
+                    name = "unknown"
+                    if match[best_match_index]:
+                        name = class_names[best_match_index].upper()
+                    y1, x2, y2, x1 = faceLoc
+                    cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 128, 0), 1)
+                    cv2.rectangle(frame, (x1, y2 - 20), (x2, y2), (0, 128, 0), cv2.FILLED)
+                    cv2.putText(frame, name, (x1 + 6, y2 - 6), cv2.FONT_HERSHEY_COMPLEX, 0.5, (255, 255, 255), 1)
+                    if confidence >= 50:
+                        cv2.putText(frame, f"{confidence}% Terdaftar", (x1, y1 - 10), cv2.FONT_HERSHEY_COMPLEX, 0.5,
+                                    (0, 255, 0), 1)
+                    else:
+                        cv2.putText(frame, f"{confidence}% Tidak Di Ketahui", (x1, y1 - 10), cv2.FONT_HERSHEY_COMPLEX,
+                                    0.5, (0, 0, 255), 1)
+                    mark_attendance(name)
             mark_attendance(name)
-        # Ini untuk menambahkan Level akurasinya atau level of confidence nya
-        for face_dis in distances:
-            min_distance = min(face_dis)
-            confidence = round(((1 - min_distance) * 100), 2)
-            if confidence >= 50:  # ini untuk menentukan apakah wajahnya dikenal atau tidak
-                cv2.putText(frame, f"{confidence}% Terdaftar", (x1 + 6, y2 - 6), cv2.FONT_HERSHEY_COMPLEX, 0.5, (0, 255, 0), 1)
-            else:
-                cv2.putText(frame, f"{confidence}% Tidak Di Ketahui", (50, 50), cv2.FONT_HERSHEY_COMPLEX, 0.5, (0, 0, 255), 1)
+        # Ini untuk menambahkan Level akurasinya atau level o%f confidence nya
+        # for face_dis in distances:
+        #     match = face_recognition.compare_faces(encode_list_known, encodeFace, tolerance=0.50)
+        #     face_dis = face_recognition.face_distance(encode_list_known, encodeFace)
+        #     distances.append(face_dis)
+        #     best_match_index = np.argmin(face_dis)
+        #     min_distance = face_dis[best_match_index]
+        #     confidence = round(((1 - min_distance) * 100), 2)
+        #     if confidence >= 50:  # ini untuk menentukan apakah wajahnya dikenal atau tidak
+        #         cv2.putText(frame, f"{confidence}% Terdaftar", (x1 + 6, y1 - 6), cv2.FONT_HERSHEY_COMPLEX, 0.5, (0, 255, 0), 1)
+        #     else:
+        #         cv2.putText(frame, f"{confidence}% Tidak Di Ketahui", (50, 50), cv2.FONT_HERSHEY_COMPLEX, 0.5, (0, 0, 255), 1)
         return frame
+
+
 
     def showdialog(self):
         msg = QMessageBox()
