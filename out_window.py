@@ -10,6 +10,7 @@ import os
 import csv
 
 class Ui_OutputDialog(QDialog):
+    attendance_names = []
     def __init__(self):
         super(Ui_OutputDialog, self).__init__()
         loadUi("./outputwindow.ui", self)
@@ -60,6 +61,7 @@ class Ui_OutputDialog(QDialog):
         self.timer.start(10)  # emit the timeout() signal at x=40ms
 
     def face_rec_(self, frame, encode_list_known, class_names):
+        names = []
         """
         :param frame: frame from camera
         :param encode_list_known: known face encoding
@@ -68,24 +70,17 @@ class Ui_OutputDialog(QDialog):
         """
         # csv
 
-        def mark_attendance(name):
-            """
-            :param name: detected face known or unknown one
-            :return:
-            """
-            # Ini jika tombol klik button nya di klik maka tidak bisa diklik lg
-
-
-            # self.ClcokInButton.setEnabled(False)
-            if  self.ClockInButton.isChecked():
+        def mark_attendance(names):
+            if self.ClockInButton.isChecked():
                 self.ClockOutButton.setEnabled(False)
                 self.ClockInButton.setEnabled(True)
                 with open('Attendance.csv', 'a') as f:
-                        if (name != 'unknown'):
-                            buttonReply = QMessageBox.question(self, "Selamat Datang" + name, 'Apakah anda ingin absen?' ,
+                    for name in names:
+                        if name != 'unknown':
+                            buttonReply = QMessageBox.question(self, "Selamat Datang " + name,
+                                                               'Apakah anda ingin absen?',
                                                                QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
                             if buttonReply == QMessageBox.Yes:
-
                                 date_time_string = datetime.datetime.now().strftime("%y/%m/%d %H:%M:%S")
                                 f.writelines(f'\n{name},{date_time_string}, ')
                                 self.ClockInButton.setChecked(False)
@@ -93,42 +88,10 @@ class Ui_OutputDialog(QDialog):
                                 current_time = datetime.datetime.now().strftime("%I:%M:%p")
 
                                 self.NameLabel.setText(name)
-                                self.StatusLabel.setText('Mahsiswa Hadir')
-                                # self.HoursLabel.setText('Measuring')
+                                self.StatusLabel.setText('Mahasiswa Hadir')
                                 self.HoursLabel.setText(current_time)
                                 self.MinLabel.setText('')
-
-                                # # Untuk memunculkan confidence level HAAR CASCADE CLASSIFIER Baru ditambahin
-                                # def detect_faces(self, img, labels=None, recognizer=None):
-                                #     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-                                #     faces = face_cascade.detectMultiScale(gray, scaleFactor=1.3, minNeighbors=5)
-                                #     for (x, y, w, h) in faces:
-                                #         roi_gray = gray[y:y + h, x:x + w]
-                                #         roi_color = img[y:y + h, x:x + w]
-                                #         id_, conf = recognizer.predict(roi_gray)
-                                #         if conf > 70:
-                                #             font = cv2.FONT_HERSHEY_SIMPLEX
-                                #             name = labels[id_]
-                                #             confidence = " {0}%".format(round(100 - conf))
-                                #             cv2.putText(img, name + confidence, (x + 5, y - 5), font, 1,
-                                #                         (255, 255, 255), 2)
-                                #             cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 2)
-                                #             return name, round(100 - conf)
-                                #     return 'unknown', 0
-                                # gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-                                # faces = face_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5,
-                                #                                       minSize=(30, 30))
-                                # for (x, y, w, h) in faces:
-                                #     cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
-                                #     confidence = str(
-                                #         round(100 - (w * h) / (gray.shape[0] * gray.shape[1]) * 100, 2)) + '%'
-                                #     cv2.putText(frame, confidence, (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5,
-                                #                 (0, 255, 0), 2)
-
-                                #self.CalculateElapse(name)
-                                #print('Yes clicked and detected')
                                 self.Time1 = datetime.datetime.now()
-                                #print(self.Time1)
                                 self.ClockInButton.setEnabled(True)
                             else:
                                 print('Belum di Klik')
@@ -138,9 +101,11 @@ class Ui_OutputDialog(QDialog):
                 self.ClockInButton.setEnabled(True)
                 self.ClockOutButton.setEnabled(False)
                 with open('Attendance.csv', 'a') as f:
-                        if (name != 'unknown'):
-                            buttonReply = QMessageBox.question(self, 'Selamat datang' + name, "Apakah anda ingin absen?",
-                                                              QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+                    for name in names:
+                        if name != 'unknown':
+                            buttonReply = QMessageBox.question(self, 'Selamat datang ' + name,
+                                                               "Apakah anda ingin absen?",
+                                                               QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
                             if buttonReply == QMessageBox.Yes:
                                 date_time_string = datetime.datetime.now().strftime("%y/%m/%d %H:%M:%S")
                                 f.writelines(f'\n{name},{date_time_string},Dosen')
@@ -151,15 +116,7 @@ class Ui_OutputDialog(QDialog):
                                 self.StatusLabel.setText('Dosen Hadir')
                                 self.HoursLabel.setText(cuurent_time)
                                 self.Time2 = datetime.datetime.now()
-                                #print(self.Time2)
 
-                                # self.ElapseList(name)
-                                # self.TimeList2.append(datetime.datetime.now())
-                                # CheckInTime = self.TimeList1[-1]
-                                # CheckOutTime = self.TimeList2[-1]
-                                # self.ElapseHours = (CheckOutTime - CheckInTime)
-                                # self.MinLabel.setText("{:.0f}".format(abs(self.ElapseHours.total_seconds() / 60)%60) + 'm')
-                                # self.HoursLabel.setText("{:.0f}".format(abs(self.ElapseHours.total_seconds() / 60**2)) + 'h')
                                 self.ClockOutButton.setEnabled(True)
                             else:
                                 print('Not clicked.')
@@ -178,6 +135,7 @@ class Ui_OutputDialog(QDialog):
             best_match_index = np.argmin(face_dis)
             if match[best_match_index]:
                 name = class_names[best_match_index].upper()
+                names.append(name)  # tambahkan nama ke dalam list names
                 y1, x2, y2, x1 = faceLoc
                 cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 128, 0), 1)
                 cv2.rectangle(frame, (x1, y2 - 20), (x2, y2), (0, 128, 0), cv2.FILLED)
@@ -203,20 +161,7 @@ class Ui_OutputDialog(QDialog):
                     else:
                         cv2.putText(frame, f"{confidence}% Tidak Di Ketahui", (x1, y1 - 10), cv2.FONT_HERSHEY_COMPLEX,
                                     0.5, (0, 0, 255), 1)
-                    mark_attendance(name)
-            mark_attendance(name)
-        # Ini untuk menambahkan Level akurasinya atau level o%f confidence nya
-        # for face_dis in distances:
-        #     match = face_recognition.compare_faces(encode_list_known, encodeFace, tolerance=0.50)
-        #     face_dis = face_recognition.face_distance(encode_list_known, encodeFace)
-        #     distances.append(face_dis)
-        #     best_match_index = np.argmin(face_dis)
-        #     min_distance = face_dis[best_match_index]
-        #     confidence = round(((1 - min_distance) * 100), 2)
-        #     if confidence >= 50:  # ini untuk menentukan apakah wajahnya dikenal atau tidak
-        #         cv2.putText(frame, f"{confidence}% Terdaftar", (x1 + 6, y1 - 6), cv2.FONT_HERSHEY_COMPLEX, 0.5, (0, 255, 0), 1)
-        #     else:
-        #         cv2.putText(frame, f"{confidence}% Tidak Di Ketahui", (50, 50), cv2.FONT_HERSHEY_COMPLEX, 0.5, (0, 0, 255), 1)
+        mark_attendance(names)  # panggil metode mark_attendance() dengan daftar nama-nama
         return frame
 
 
@@ -244,15 +189,12 @@ class Ui_OutputDialog(QDialog):
                     if field in row:
                         if field == 'Clock In':
                             if row[0] == name:
-                                #print(f'\t ROW 0 {row[0]}  ROW 1 {row[1]} ROW2 {row[2]}.')
                                 Time1 = (datetime.datetime.strptime(row[1], '%y/%m/%d %H:%M:%S'))
                                 self.TimeList1.append(Time1)
                         if field == 'Clock Out':
                             if row[0] == name:
-                                #print(f'\t ROW 0 {row[0]}  ROW 1 {row[1]} ROW2 {row[2]}.')
                                 Time2 = (datetime.datetime.strptime(row[1], '%y/%m/%d %H:%M:%S'))
                                 self.TimeList2.append(Time2)
-                                #print(Time2)
 
 
 
