@@ -10,7 +10,7 @@ import os
 import csv
 
 class Ui_OutputDialog(QDialog):
-    attendance_names = []
+    attendance_names = [] #Nambahin attendance name ketika di dalam frame lebih dari 1 orang
     def __init__(self):
         super(Ui_OutputDialog, self).__init__()
         loadUi("./outputwindow.ui", self)
@@ -131,8 +131,10 @@ class Ui_OutputDialog(QDialog):
             match = face_recognition.compare_faces(encode_list_known, encodeFace, tolerance=0.50)
             face_dis = face_recognition.face_distance(encode_list_known, encodeFace)
             distances.append(face_dis)
-            name = "unknown"
             best_match_index = np.argmin(face_dis)
+            min_distance = face_dis[best_match_index]
+            confidence = round(((1 - min_distance) * 100), 2)
+            print("Min Distance:", min_distance)
             if match[best_match_index]:
                 name = class_names[best_match_index].upper()
                 names.append(name)  # tambahkan nama ke dalam list names
